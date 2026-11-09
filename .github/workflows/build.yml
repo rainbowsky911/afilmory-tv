@@ -17,11 +17,14 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+
+      # ubuntu-latest 自带 Android SDK，只需确保 build-tools 34 + platform 34 存在
+      - name: Ensure SDK components
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon --stacktrace
