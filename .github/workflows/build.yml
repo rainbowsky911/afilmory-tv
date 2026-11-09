@@ -20,11 +20,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # ubuntu-latest 自带 Android SDK，只需确保 build-tools 34 + platform 34 存在
-      - name: Ensure SDK components
+      # 确认 ubuntu 自带的 SDK 组件（调试用，失败时能看到有哪些版本）
+      - name: Show Android SDK
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/build-tools/" 2>/dev/null || echo "no build-tools"
+          ls "$ANDROID_HOME/platforms/" 2>/dev/null || echo "no platforms"
 
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon --stacktrace
