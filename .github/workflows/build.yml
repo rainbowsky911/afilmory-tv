@@ -17,15 +17,21 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Gradle
+      # AGP 8.2.0 需要 Gradle 8.2-8.7，固定 8.7 避免装到不兼容的新版
+      - name: Setup Gradle 8.7
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
 
-      # 确认 ubuntu 自带的 SDK 组件（调试用，失败时能看到有哪些版本）
-      - name: Show Android SDK
+      # 确保 build-tools 34 + platform 34（sdkmanager 用完整路径，不在 PATH）
+      - name: Ensure SDK components
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-          ls "$ANDROID_HOME/build-tools/" 2>/dev/null || echo "no build-tools"
-          ls "$ANDROID_HOME/platforms/" 2>/dev/null || echo "no platforms"
+          ls "$ANDROID_HOME/build-tools/" 2>/dev/null || true
+          ls "$ANDROID_HOME/platforms/" 2>/dev/null || true
+          SDKMGR="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
+          "$SDKMGR" "platforms;android-34" "build-tools;34.0.0" || true
 
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon --stacktrace
