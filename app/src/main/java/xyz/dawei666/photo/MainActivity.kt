@@ -35,8 +35,14 @@ class MainActivity : Activity() {
             loadWithOverviewMode = true
             useWideViewPort = true
             cacheMode = WebSettings.LOAD_DEFAULT
-            // TV 设备在 UA 加 "TV Leanback"，网站 TV_MODE 检测命中（\\bTV\\b / \\bLeanback\\b）
+            // TV 检测（多重条件，兼容小米 MIUI TV 等定制系统）：
+            // 1. FEATURE_LEANBACK（标准 Android TV）
+            // 2. UI_MODE_TYPE_TELEVISION（系统声明 TV 模式）
+            // 3. 无触摸屏（电视通常无触摸，手机有）
+            val uiMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK
             val isTV = packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+                || uiMode == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION
+                || !packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TOUCHSCREEN)
             if (isTV) {
                 userAgentString = "$userAgentString TV Leanback"
             }
