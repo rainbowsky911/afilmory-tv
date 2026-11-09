@@ -66,13 +66,20 @@ class MainActivity : Activity() {
         webView.saveState(outState)
     }
 
-    // app 切后台时暂停 WebView（省电/省 CPU），回前台恢复
+    // app 切后台时暂停 WebView + JS 定时器（省 CPU/内存），回前台恢复
     override fun onPause() {
         super.onPause()
         webView.onPause()
+        webView.pauseTimers()
     }
     override fun onResume() {
         super.onResume()
+        webView.resumeTimers()
         webView.onResume()
+    }
+    // 退出时彻底销毁 WebView（释放渲染引擎 + 图片解码缓存，避免后台残留几百 MB）
+    override fun onDestroy() {
+        webView.destroy()
+        super.onDestroy()
     }
 }
