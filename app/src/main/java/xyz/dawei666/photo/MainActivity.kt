@@ -48,7 +48,31 @@ class MainActivity : Activity() {
             }
         }
         webView.webViewClient = WebViewClient()
-        webView.webChromeClient = WebChromeClient()
+        // 视频全屏支持：网站 <video> 请求全屏时（onShowCustomView），把 video view 全屏覆盖到 Activity；
+        // 退出全屏（onHideCustomView）移除。电视上看视频必备。
+        webView.webChromeClient = object : WebChromeClient() {
+            private var customView: android.view.View? = null
+            private var customViewCallback: CustomViewCallback? = null
+
+            override fun onShowCustomView(view: android.view.View, callback: CustomViewCallback) {
+                if (customView != null) {
+                    callback.onCustomViewHidden()
+                    return
+                }
+                customView = view
+                customViewCallback = callback
+                addContentView(view, android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT))
+            }
+
+            override fun onHideCustomView() {
+                customView?.let { (it.parent as? android.view.ViewGroup)?.removeView(it) }
+                customView = null
+                customViewCallback?.onCustomViewHidden()
+                customViewCallback = null
+            }
+        }
 
         // 旋转/切后台恢复时不重载（保留页面状态）
         if (savedInstanceState != null) {
